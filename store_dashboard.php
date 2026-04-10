@@ -259,14 +259,19 @@ include_once 'includes/header.php';
                 <div class="form-group">
                     <label>Product Image (Optional)</label>
                     <div style="position: relative; overflow: hidden; display: inline-block; width: 100%;">
-                        <button type="button" class="btn btn-glass" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px dashed var(--text-muted);">
-                            <i class="fas fa-image"></i> Click to Upload Image
+                        <button type="button" class="btn btn-glass" id="uploadBtn" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px dashed var(--text-muted); position: relative; overflow: hidden;">
+                            <div id="uploadProgress" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: rgba(59, 130, 246, 0.3); z-index: 1; transition: width 0.3s ease;"></div>
+                            <span id="uploadText" style="position: relative; z-index: 2;"><i class="fas fa-image"></i> Click to Upload Image</span>
                         </button>
-                        <input type="file" name="p_image" accept="image/*" style="position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+                        <input type="file" name="p_image" id="p_image" accept="image/*" style="position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 3;">
                     </div>
-                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Format: JPG, PNG (Max 5MB)</p>
+                    <div id="uploadStatusContainer" style="display: none; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <span id="uploadStatusText" style="font-size: 0.8rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;"></span>
+                        <span id="uploadStatusPercent" style="font-size: 0.8rem; color: #10b981; font-weight: bold;"></span>
+                    </div>
+                    <p id="uploadFormatText" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;">Format: JPG, PNG (Max 5MB)</p>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Add Product</button>
+                <button type="submit" id="addProductBtn" class="btn btn-primary" style="width: 100%; justify-content: center;">Add Product</button>
             </form>
 
             <h3 style="margin-bottom: 1rem;">My Inventory</h3>
@@ -331,6 +336,66 @@ function submitRejection() {
         alert('Rejection reason cannot be empty.');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    let p_image_input = document.getElementById('p_image');
+    if (p_image_input) {
+        p_image_input.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                let file = this.files[0];
+                let progress = document.getElementById('uploadProgress');
+                let text = document.getElementById('uploadText');
+                let statusContainer = document.getElementById('uploadStatusContainer');
+                let statusText = document.getElementById('uploadStatusText');
+                let statusPercent = document.getElementById('uploadStatusPercent');
+                let formatText = document.getElementById('uploadFormatText');
+                let formBtn = document.getElementById('addProductBtn');
+                
+                let width = 0;
+                progress.style.width = '0%';
+                progress.style.background = 'rgba(59, 130, 246, 0.3)'; // Blue during upload
+                text.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                formatText.style.display = 'none';
+                statusContainer.style.display = 'flex';
+                statusText.innerText = file.name;
+                statusPercent.innerText = '0%';
+                statusPercent.style.color = '#3b82f6';
+                
+                if (formBtn) formBtn.disabled = true;
+                if (formBtn) formBtn.style.opacity = '0.5';
+                if (formBtn) formBtn.style.cursor = 'not-allowed';
+                
+                let interval = setInterval(() => {
+                    width += Math.random() * 20 + 10;
+                    if (width >= 100) {
+                        width = 100;
+                        clearInterval(interval);
+                        progress.style.background = 'rgba(16, 185, 129, 0.3)'; // Green when done
+                        text.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Ready';
+                        statusPercent.innerText = '100%';
+                        statusPercent.style.color = '#10b981';
+                        
+                        if (formBtn) formBtn.disabled = false;
+                        if (formBtn) formBtn.style.opacity = '1';
+                        if (formBtn) formBtn.style.cursor = 'pointer';
+                        
+                        setTimeout(() => {
+                            statusContainer.style.display = 'none';
+                            formatText.style.display = 'block';
+                            formatText.innerText = 'Image selected successfully';
+                            formatText.style.color = '#10b981';
+                        }, 2000);
+                    }
+                    progress.style.width = width + '%';
+                    if (width < 100) {
+                        statusPercent.innerText = Math.round(width) + '%';
+                    }
+                }, 150);
+            }
+        });
+    }
+});
 </script>
 </body>
 </html>

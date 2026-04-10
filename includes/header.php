@@ -46,6 +46,9 @@
                         <span style="color: var(--text-main); font-weight: 600; margin-right: 5px;">
                             Hi, <?php echo explode(' ', $_SESSION['name'])[0] ?? 'User'; ?>
                         </span>
+                        <?php if(!hasRole('ADMIN')): ?>
+                            <a href="help.php" class="btn btn-glass" style="padding: 8px 16px;"><i class="fas fa-headset" style="margin-right: 5px;"></i> Help</a>
+                        <?php endif; ?>
                         <a href="profile.php" class="btn btn-glass" style="padding: 8px 16px;"><i class="fas fa-user-edit" style="margin-right: 5px;"></i> Profile</a>
                         <a href="logout.php" class="btn btn-glass" style="padding: 8px 16px;">Logout</a>
                     </div>

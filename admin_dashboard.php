@@ -29,6 +29,11 @@ $stmt = $pdo->prepare("SELECT s.*, u.name as owner_name, u.email as owner_email 
 $stmt->execute();
 $pending_stores = $stmt->fetchAll();
 
+// Fetch Open Tickets Count
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM tickets WHERE status = 'OPEN'");
+$stmt->execute();
+$open_tickets_count = $stmt->fetchColumn();
+
 include_once 'includes/header.php';
 ?>
 
@@ -38,9 +43,17 @@ include_once 'includes/header.php';
             <h1 style="font-size: 2.5rem;">Admin Control <span style="color: var(--primary);">Panel</span></h1>
             <p style="color: var(--text-muted);">Review and moderate campus store registrations.</p>
         </div>
-        <div class="glass" style="padding: 1rem 1.5rem; text-align: center;">
-            <span style="font-size: 2rem; font-weight: 800; color: var(--primary); display: block;"><?php echo count($pending_stores); ?></span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Requests</span>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end;">
+            <a href="admin_tickets.php" style="text-decoration: none;">
+                <div class="glass" style="padding: 1rem 1.5rem; text-align: center; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <span style="font-size: 2rem; font-weight: 800; color: var(--accent); display: block;"><i class="fas fa-ticket-alt" style="font-size: 1.2rem; margin-right: 5px;"></i><?php echo $open_tickets_count; ?></span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Open Tickets</span>
+                </div>
+            </a>
+            <div class="glass" style="padding: 1rem 1.5rem; text-align: center;">
+                <span style="font-size: 2rem; font-weight: 800; color: var(--primary); display: block;"><?php echo count($pending_stores); ?></span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Pending Stores</span>
+            </div>
         </div>
     </div>
 

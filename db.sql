@@ -113,4 +113,42 @@ CREATE TABLE IF NOT EXISTS `redemptions` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 9. Support Tickets Table
+CREATE TABLE IF NOT EXISTS `tickets` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ticket_number` VARCHAR(20) NOT NULL UNIQUE,
+  `user_id` INT(11) NOT NULL,
+  `subject` VARCHAR(255) NOT NULL,
+  `status` ENUM('OPEN', 'CLOSED') DEFAULT 'OPEN',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. Ticket Messages Table
+CREATE TABLE IF NOT EXISTS `ticket_messages` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ticket_id` INT(11) NOT NULL,
+  `sender_type` ENUM('USER', 'ADMIN') NOT NULL,
+  `message` TEXT NOT NULL,
+  `sent_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. Store Reviews Table
+CREATE TABLE IF NOT EXISTS `store_reviews` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `store_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `rating` INT(1) NOT NULL,
+  `review` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_store_user_review` (`store_id`, `user_id`),
+  FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 COMMIT;

@@ -19,6 +19,35 @@ $user_id = $_SESSION['user_id'];
 $success = '';
 $error = '';
 
+// Handle review submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_review'])) {
+    if (!hasRole('MEMBER')) {
+        $error = "Only UniMembers can submit reviews.";
+    } else {
+        $r_store_id = $_POST['store_id'];
+        $r_rating = (int) $_POST['rating'];
+        $r_review = trim($_POST['review']);
+
+        if ($r_rating >= 1 && $r_rating <= 5) {
+            $stmt_chk = $pdo->prepare("SELECT id FROM store_reviews WHERE store_id = ? AND user_id = ?");
+            $stmt_chk->execute([$r_store_id, $user_id]);
+            if ($stmt_chk->fetch()) {
+                $stmt = $pdo->prepare("UPDATE store_reviews SET rating = ?, review = ?, created_at = CURRENT_TIMESTAMP WHERE store_id = ? AND user_id = ?");
+                $stmt->execute([$r_rating, $r_review, $r_store_id, $user_id]);
+                $success = "Review updated successfully!";
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO store_reviews (store_id, user_id, rating, review) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$r_store_id, $user_id, $r_rating, $r_review]);
+                $success = "Review submitted successfully!";
+            }
+            header("Location: index.php?store_id=" . $r_store_id . "#store-reviews-section");
+            exit();
+        } else {
+            $error = "Please select a valid rating between 1 and 5.";
+        }
+    }
+}
+
 // 1. Fetch Categories
 $categories = ['Food', 'Stationery', 'Sports'];
 
@@ -29,6 +58,11 @@ $params = [];
 if (isset($_GET['cat']) && in_array($_GET['cat'], $categories)) {
     $query .= " AND p.category = ?";
     $params[] = $_GET['cat'];
+}
+
+if (isset($_GET['store_id']) && is_numeric($_GET['store_id'])) {
+    $query .= " AND p.store_id = ?";
+    $params[] = $_GET['store_id'];
 }
 
 $query .= " ORDER BY p.id DESC";
@@ -51,7 +85,17 @@ if ($rider_count == 0) {
 }
 
 // 2.7 Fetch Featured Stores
-$stmt_stores = $pdo->prepare("SELECT * FROM stores WHERE status = 'APPROVED' ORDER BY id DESC LIMIT 4");
+$stmt_stores = $pdo->prepare("
+    SELECT s.*, 
+           COALESCE(AVG(sr.rating), 0) as avg_rating,
+           COUNT(sr.id) as review_count
+    FROM stores s 
+    LEFT JOIN store_reviews sr ON s.id = sr.store_id
+    WHERE s.status = 'APPROVED' 
+    GROUP BY s.id
+    ORDER BY s.id DESC 
+    LIMIT 4
+");
 $stmt_stores->execute();
 $featured_stores = $stmt_stores->fetchAll();
 
@@ -144,10 +188,10 @@ include_once 'includes/header.php';
         <a href="#" style="font-size: 0.9rem; color: var(--accent); text-decoration: none;">View All <i
                 class="fas fa-arrow-right"></i></a>
     </h2>
-    <div class="grid grid-3" style="margin-bottom: 4rem;">
+    <div class="grid grid-4" style="margin-bottom: 4rem; gap: 20px;">
         <?php foreach ($featured_stores as $store): ?>
             <div class="glass"
-                style="padding: 1.5rem; display: flex; align-items: center; gap: 15px; transition: transform 0.3s ease; cursor: pointer;"
+                style="padding: 1.5rem; display: flex; align-items: center; gap: 15px; transition: transform 0.3s ease; height: 100%;"
                 onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
                 <div
                     style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary); flex-shrink: 0;">
@@ -157,8 +201,15 @@ include_once 'includes/header.php';
                     <h3 style="margin-bottom: 5px; font-size: 1.1rem;">
                         <?php echo htmlspecialchars($store['store_name'] ?? 'Store'); ?>
                     </h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0;"><i class="fas fa-star"
-                            style="color: #f59e0b;"></i> 4.8 (Top Rated)</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">
+                        <i class="fas fa-star" style="color: #f59e0b;"></i> 
+                        <?php if ($store['review_count'] > 0): ?>
+                            <?php echo number_format($store['avg_rating'], 1); ?> (<?php echo $store['review_count']; ?> Reviews)
+                        <?php else: ?>
+                            New Store
+                        <?php endif; ?>
+                    </p>
+                    <a href="index.php?store_id=<?php echo $store['id']; ?>#store-reviews-section" class="btn btn-glass" style="width: 100%; justify-content: center; font-size: 0.8rem; padding: 6px 10px;">View Store & Reviews</a>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -203,43 +254,174 @@ include_once 'includes/header.php';
     </div>
 
     <!-- Category Filter -->
-    <div style="display: flex; gap: 15px; margin-bottom: 2rem; flex-wrap: wrap;">
-        <a href="index.php" class="btn btn-primary">All Stores</a>
+    <div id="products-section" style="display: flex; gap: 15px; margin-bottom: 2rem; flex-wrap: wrap;">
+        <a href="index.php#products-section" class="btn <?php echo (!isset($_GET['cat']) && !isset($_GET['store_id'])) ? 'btn-primary' : 'btn-glass'; ?>">All Products</a>
         <?php foreach ($categories as $cat): ?>
-            <a href="index.php?cat=<?php echo $cat; ?>" class="btn btn-glass"><?php echo $cat; ?></a>
+            <a href="index.php?cat=<?php echo $cat; ?>#products-section" class="btn <?php echo (isset($_GET['cat']) && $_GET['cat'] == $cat) ? 'btn-primary' : 'btn-glass'; ?>"><?php echo $cat; ?></a>
         <?php endforeach; ?>
+        <?php if(isset($_GET['store_id']) && is_numeric($_GET['store_id'])): ?>
+            <a href="index.php?store_id=<?php echo $_GET['store_id']; ?>#products-section" class="btn btn-primary"><i class="fas fa-store" style="margin-right: 5px;"></i> Store Products</a>
+        <?php endif; ?>
     </div>
 
     <!-- Product Grid -->
-    <h2 style="margin-bottom: 1.5rem;">Recommended for You</h2>
+    <?php
+    $product_section_title = "Recommended for You";
+    if (isset($_GET['store_id']) && is_numeric($_GET['store_id'])) {
+        $stmt_sname = $pdo->prepare("SELECT store_name FROM stores WHERE id = ?");
+        $stmt_sname->execute([$_GET['store_id']]);
+        $sname_res = $stmt_sname->fetch();
+        if ($sname_res) {
+            $product_section_title = "Products from " . htmlspecialchars($sname_res['store_name']);
+        }
+    } else if (isset($_GET['cat']) && in_array($_GET['cat'], $categories)) {
+        $product_section_title = htmlspecialchars($_GET['cat']) . " Products";
+    }
+    ?>
+    <h2 style="margin-bottom: 1.5rem;"><?php echo $product_section_title; ?></h2>
     <div class="grid grid-3">
-        <?php foreach ($products as $p): ?>
-            <div class="glass" style="padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
-                <div
-                    style="height: 180px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    <?php if (!empty($p['image_url']) && strpos($p['image_url'], 'default_product.jpg') === false): ?>
-                        <img src="<?php echo $p['image_url']; ?>" style="width: 100%; height: 100%; object-fit: cover;"
-                            alt="<?php echo htmlspecialchars($p['name']); ?>">
-                    <?php else: ?>
-                        <i class="fas fa-shopping-bag" style="font-size: 3rem; color: var(--text-muted);"></i>
-                    <?php endif; ?>
-                </div>
-                <div style="flex-grow: 1;">
-                    <span class="badge badge-success"
-                        style="font-size: 0.6rem; margin-bottom: 1rem; display: inline-block;"><?php echo $p['category']; ?></span>
-                    <h3 style="font-size: 1.2rem; margin-bottom: 5px;"><?php echo $p['name']; ?></h3>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">By: <span
-                            style="color: var(--text-main);"><?php echo $p['store_name']; ?></span></p>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                    <span
-                        style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">₹<?php echo $p['price']; ?></span>
-                    <a href="index.php?buy_now=<?php echo $p['id']; ?>" class="btn btn-primary"
-                        style="padding: 10px 15px;">Order Now</a>
-                </div>
+        <?php if(empty($products)): ?>
+            <div class="glass" style="padding: 3rem; text-align: center; grid-column: span 3;">
+                <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--text-main);">No products found</h3>
+                <p style="color: var(--text-muted);">We couldn't find any items right now.</p>
+                <a href="index.php#products-section" class="btn btn-glass" style="margin-top: 1rem; display: inline-flex;">View All Products</a>
             </div>
-        <?php endforeach; ?>
+        <?php else: ?>
+            <?php foreach ($products as $p): ?>
+                <div class="glass" style="padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+                    <div
+                        style="height: 180px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <?php if (!empty($p['image_url']) && strpos($p['image_url'], 'default_product.jpg') === false): ?>
+                            <img src="<?php echo $p['image_url']; ?>" style="width: 100%; height: 100%; object-fit: cover;"
+                                alt="<?php echo htmlspecialchars($p['name']); ?>">
+                        <?php else: ?>
+                            <i class="fas fa-shopping-bag" style="font-size: 3rem; color: var(--text-muted);"></i>
+                        <?php endif; ?>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <span class="badge badge-success"
+                            style="font-size: 0.6rem; margin-bottom: 1rem; display: inline-block;"><?php echo $p['category']; ?></span>
+                        <h3 style="font-size: 1.2rem; margin-bottom: 5px;"><?php echo $p['name']; ?></h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">By: <span
+                                style="color: var(--text-main);"><?php echo $p['store_name']; ?></span></p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <span
+                            style="font-size: 1.4rem; font-weight: 700; color: var(--primary);">₹<?php echo $p['price']; ?></span>
+                        <a href="index.php?buy_now=<?php echo $p['id']; ?>" class="btn btn-primary"
+                            style="padding: 10px 15px;">Order Now</a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
+
+    <!-- Store Reviews Section -->
+    <?php if (isset($_GET['store_id']) && is_numeric($_GET['store_id'])): ?>
+    <?php 
+        $sid = $_GET['store_id'];
+        $stmt_revs = $pdo->prepare("SELECT sr.*, u.name as reviewer_name FROM store_reviews sr JOIN users u ON sr.user_id = u.id WHERE sr.store_id = ? ORDER BY sr.created_at DESC");
+        $stmt_revs->execute([$sid]);
+        $store_reviews = $stmt_revs->fetchAll();
+        
+        $stmt_my_rev = $pdo->prepare("SELECT * FROM store_reviews WHERE store_id = ? AND user_id = ?");
+        $stmt_my_rev->execute([$sid, $user_id]);
+        $my_review = $stmt_my_rev->fetch();
+    ?>
+    <div id="store-reviews-section" style="margin-top: 4rem; margin-bottom: 4rem;">
+        <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-comments" style="color: var(--primary);"></i> Store Reviews
+        </h2>
+        
+        <div class="grid grid-2" style="align-items: start; gap: 2rem;">
+            <!-- Leave a Review Form -->
+            <div class="glass" style="padding: 2rem;">
+                <h3 style="margin-bottom: 1rem;"><?php echo $my_review ? 'Update your review' : 'Leave a Review'; ?></h3>
+                
+                <?php if(!hasRole('MEMBER')): ?>
+                    <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px 15px; margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                        <i class="fas fa-info-circle" style="color: #f59e0b; margin-right: 5px;"></i> You are viewing this form, but only <strong>UniMembers</strong> can submit reviews.
+                    </div>
+                <?php endif; ?>
+
+                <form action="index.php" method="POST">
+                    <input type="hidden" name="submit_review" value="1">
+                    <input type="hidden" name="store_id" value="<?php echo $sid; ?>">
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 10px;">Your Rating</label>
+                        <div class="star-rating" style="display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 5px; font-size: 2rem;">
+                            <input type="radio" id="star5" name="rating" value="5" <?php echo ($my_review && $my_review['rating']==5) ? 'checked' : ''; ?> required /><label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star4" name="rating" value="4" <?php echo ($my_review && $my_review['rating']==4) ? 'checked' : ''; ?> /><label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star3" name="rating" value="3" <?php echo ($my_review && $my_review['rating']==3) ? 'checked' : ''; ?> /><label for="star3" title="3 stars"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star2" name="rating" value="2" <?php echo ($my_review && $my_review['rating']==2) ? 'checked' : ''; ?> /><label for="star2" title="2 stars"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star1" name="rating" value="1" <?php echo ($my_review && $my_review['rating']==1) ? 'checked' : ''; ?> /><label for="star1" title="1 star"><i class="fas fa-star"></i></label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Feedback</label>
+                        <textarea name="review" class="form-input" rows="4" placeholder="What did you think about this store?" required><?php echo $my_review ? htmlspecialchars($my_review['review']) : ''; ?></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;" <?php echo !hasRole('MEMBER') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''; ?>>
+                        <?php echo $my_review ? 'Update Review' : 'Submit Review'; ?>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- List of Reviews -->
+            <div style="display: flex; flex-direction: column; gap: 15px; max-height: 500px; overflow-y: auto; padding-right: 5px;">
+                <?php if (empty($store_reviews)): ?>
+                    <div class="glass" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                        <i class="far fa-star" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No reviews yet. Be the first to review this store!</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach($store_reviews as $rev): ?>
+                        <div class="glass" style="padding: 1.5rem; background: rgba(0,0,0,0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div>
+                                    <span style="font-weight: bold; color: var(--text-main); display: block;"><?php echo htmlspecialchars($rev['reviewer_name']); ?></span>
+                                    <div style="color: #f59e0b; font-size: 0.8rem; margin-top: 5px;">
+                                        <?php for($i=1; $i<=5; $i++): ?>
+                                            <?php if($i <= $rev['rating']): ?>
+                                                <i class="fas fa-star"></i>
+                                            <?php else: ?>
+                                                <i class="far fa-star"></i>
+                                            <?php endif; ?>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                                <span style="font-size: 0.7rem; color: var(--text-muted);"><?php echo date('M d, Y', strtotime($rev['created_at'])); ?></span>
+                            </div>
+                            <p style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); margin: 0;"><?php echo nl2br(htmlspecialchars($rev['review'])); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CSS for Native Star Rating Interaction -->
+    <style>
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+        .star-rating label {
+            color: rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating input[type="radio"]:checked + label,
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #f59e0b;
+        }
+    </style>
+    <?php endif; ?>
 
     <!-- The UniCoin Ecosystem Section -->
     <div class="glass ecosystem-section"
