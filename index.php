@@ -89,7 +89,7 @@ include_once 'includes/header.php';
 
 <div class="container" style="padding-top: 3rem;">
     <!-- Hero Section -->
-    <div class="glass flex-mobile-col text-center" style="padding: 4rem 2rem; margin-bottom: 3rem; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
+    <div class="glass flex-mobile-col text-center hero-section" style="padding: 4rem 2rem; margin-bottom: 3rem; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
         <div style="z-index: 2;">
             <div style="display: inline-block; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 16px; border-radius: 20px; font-weight: 600; color: var(--accent); margin-bottom: 20px;">
                 <i class="fas fa-motorcycle"></i> Live ETD: <?php echo $etd_message; ?>
@@ -103,23 +103,23 @@ include_once 'includes/header.php';
     </div>
 
     <!-- Quick Stats -->
-    <div class="glass" style="display: flex; justify-content: space-around; padding: 2rem 1rem; margin-bottom: 4rem; border-radius: 16px; flex-wrap: wrap; gap: 20px;">
-        <div style="text-align: center; flex: 1; min-width: 150px;">
+    <div class="glass quick-stats" style="display: flex; justify-content: space-around; padding: 2rem 1rem; margin-bottom: 4rem; border-radius: 16px; flex-wrap: wrap; gap: 20px;">
+        <div class="stat-box" style="text-align: center; flex: 1; min-width: 150px;">
             <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); line-height: 1;">100+</div>
             <div style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;"><i class="fas fa-box-open" style="margin-right: 5px;"></i> Daily Deliveries</div>
         </div>
-        <div style="text-align: center; flex: 1; min-width: 150px; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+        <div class="stat-box stat-divider" style="text-align: center; flex: 1; min-width: 150px; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
             <div style="font-size: 2.5rem; font-weight: 800; color: var(--accent); line-height: 1;"><?php echo max(50, $rider_count * 10); ?>+</div>
             <div style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;"><i class="fas fa-users" style="margin-right: 5px;"></i> Active Riders</div>
         </div>
-        <div style="text-align: center; flex: 1; min-width: 150px;">
+        <div class="stat-box" style="text-align: center; flex: 1; min-width: 150px;">
             <div style="font-size: 2.5rem; font-weight: 800; color: #f59e0b; line-height: 1;">~<?php echo $rider_count > 0 ? '15' : '25'; ?>m</div>
             <div style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;"><i class="fas fa-bolt" style="margin-right: 5px;"></i> Avg ETA</div>
         </div>
     </div>
 
     <!-- Featured Campus Stores -->
-    <h2 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <h2 class="section-title" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <span><i class="fas fa-store-alt" style="color: var(--primary); margin-right: 10px;"></i> Featured Stores</span>
         <a href="#" style="font-size: 0.9rem; color: var(--accent); text-decoration: none;">View All <i class="fas fa-arrow-right"></i></a>
     </h2>
@@ -202,10 +202,10 @@ include_once 'includes/header.php';
     </div>
 
     <!-- The UniCoin Ecosystem Section -->
-    <div class="glass" style="padding: 3rem 2rem; margin-top: 4rem; border-radius: 16px; background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(245, 158, 11, 0.05)); border-left: 4px solid #f59e0b; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem;">
-        <div style="flex: 1; min-width: 300px;">
+    <div class="glass ecosystem-section" style="padding: 3rem 2rem; margin-top: 4rem; border-radius: 16px; background: linear-gradient(to right, rgba(0,0,0,0.3), rgba(245, 158, 11, 0.05)); border-left: 4px solid #f59e0b; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem;">
+        <div class="ecosystem-text" style="flex: 1; min-width: 250px;">
             <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; margin-bottom: 15px; display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem;"><i class="fas fa-coins"></i> UniSphere Economy</span>
-            <h2 style="font-size: 2.2rem; margin-bottom: 1rem; line-height: 1.2;">Earn <span style="color: #f59e0b;">UniCoins</span> with <br>every action.</h2>
+            <h2 class="ecosystem-title" style="font-size: 2.2rem; margin-bottom: 1rem; line-height: 1.2;">Earn <span style="color: #f59e0b;">UniCoins</span> with <br>every action.</h2>
             <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem;">The Campus Delivery Ecosystem rewards both buyers and riders. Earn virtual currency to unlock exclusive campus perks, free deliveries, and special meals at partnered canteens.</p>
             <ul style="list-style: none; padding: 0; margin-bottom: 0;">
                 <li style="margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center;"><i class="fas fa-check-circle" style="color: #10b981; margin-right: 10px; font-size: 1.2rem;"></i> Get 5 UniCoins per successful delivery (Riders)</li>
@@ -213,7 +213,7 @@ include_once 'includes/header.php';
                 <li style="margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center;"><i class="fas fa-check-circle" style="color: #10b981; margin-right: 10px; font-size: 1.2rem;"></i> Redeem for discount vouchers & gifts</li>
             </ul>
         </div>
-        <div style="flex: 1; min-width: 300px; display: flex; justify-content: center;">
+        <div class="ecosystem-animation" style="flex: 1; min-width: 250px; display: flex; justify-content: center;">
             <div style="width: 250px; height: 250px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; border: 2px dashed rgba(245, 158, 11, 0.4); animation: spin 20s linear infinite;">
                 <div style="width: 180px; height: 180px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: spin-reverse 20s linear infinite;">
                     <i class="fas fa-gem" style="font-size: 4rem; color: #f59e0b; margin-bottom: 10px; text-shadow: 0 0 20px rgba(245,158,11,0.5);"></i>
@@ -275,10 +275,10 @@ include_once 'includes/header.php';
     </div>
 
     <!-- Become a Rider CTA -->
-    <div class="glass flex-mobile-col" style="padding: 3rem; margin-top: 5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; position: relative;">
+    <div class="glass flex-mobile-col rider-cta" style="padding: 3rem; margin-top: 5rem; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.1)); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; position: relative;">
         <div style="z-index: 2;">
             <span class="badge badge-success" style="margin-bottom: 15px; display: inline-block; font-size: 0.8rem;"><i class="fas fa-star" style="color: #f59e0b;"></i> UniRider Program</span>
-            <h2 style="font-size: 2.2rem; margin-bottom: 1rem; line-height: 1.2;">Deliver & earn while<br>walking to class!</h2>
+            <h2 class="cta-title" style="font-size: 2.2rem; margin-bottom: 1rem; line-height: 1.2;">Deliver & earn while<br>walking to class!</h2>
             <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 500px; margin-bottom: 1.5rem;">Join our student delivery network. Deliver orders on your way to the hostel or classes, earn UniCoins, and redeem them at your favorite campus spots.</p>
             <a href="rider_dashboard.php" class="btn btn-primary" style="padding: 12px 24px; font-size: 1.1rem; border-radius: 30px;">
                 <i class="fas fa-biking" style="margin-right: 8px;"></i> Join as a UniRider

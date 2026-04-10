@@ -346,7 +346,11 @@ tr:last-child td {
     
     header { padding: 1rem 0; }
 
-    /* Mobile specific layout utilities to override inline styles */
+    /* Auth modifications */
+    .auth-card { padding: 1.5rem !important; }
+    .auth-wrapper { padding: 2rem 15px !important; }
+
+    /* Fix flex layouts on mobile */
     .flex-mobile-col {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -356,10 +360,60 @@ tr:last-child td {
         align-items: center !important;
         text-align: center;
     }
+    .flex-mobile-col > div[style*="text-align: right"] {
+        text-align: left !important;
+        align-items: flex-start !important;
+        flex-direction: column !important;
+    }
+    
+    /* Ensure forms with Flex wrap nicely */
+    form[style*="display: flex"] {
+        flex-wrap: wrap !important;
+    }
+    form[style*="display: flex"] > input,
+    form[style*="display: flex"] > button {
+        flex: 1 1 100% !important;
+    }
+
     .w-100-mobile {
         width: 100% !important;
     }
     .hero-icon-mobile-hide {
         display: none !important;
+    }
+
+    /* Fixed Element Sizing for Mobile overflow issues */
+    .ecosystem-text, .ecosystem-animation {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    /* Quick stats mobile adjustments */
+    .quick-stats {
+        flex-direction: column !important;
+        gap: 20px !important;
+        align-items: center !important;
+    }
+    .stat-box {
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+    .stat-divider {
+        border-left: none !important;
+        border-right: none !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 20px 0 !important;
+    }
+
+    /* Typography refinements for mobile */
+    .ecosystem-title, .cta-title {
+        font-size: 1.8rem !important;
+    }
+    
+    .section-title {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
     }
 }
