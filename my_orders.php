@@ -53,6 +53,15 @@ include_once 'includes/header.php';
                         <p style="font-size: 0.95rem;">Total: <span style="color: var(--primary); font-weight: 700;">₹<?php echo $o['total_price']; ?></span></p>
                     </div>
 
+                    <?php if($o['status'] == 'CANCELLED' && !empty($o['rejection_reason'])): ?>
+                        <div style="background: rgba(239, 68, 68, 0.05); padding: 1.2rem; border-radius: 12px; border: 1px dashed var(--danger); margin-bottom: 1rem;">
+                            <p style="font-size: 0.75rem; color: var(--danger); margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Order Declined</p>
+                            <p style="font-size: 0.95rem; font-weight: 500; color: var(--text-main);">
+                                Reason: <?php echo htmlspecialchars($o['rejection_reason']); ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if($o['status'] != 'DELIVERED' && $o['status'] != 'CANCELLED' && $o['status'] != 'AWAITING_PAYMENT'): ?>
                         <div style="background: rgba(99, 102, 241, 0.05); padding: 1.2rem; border-radius: 12px; border: 1px dashed var(--primary); margin-bottom: 1rem;">
                             <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase;">Delivery OTP (Share with UniRider)</p>

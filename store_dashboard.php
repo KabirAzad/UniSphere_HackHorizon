@@ -159,6 +159,18 @@ if (isset($_GET['verify_order'])) {
     }
 }
 
+// 3.5 Handle Order Decline
+if (isset($_GET['decline_order'])) {
+    $order_id = $_GET['decline_order'];
+    $reason = $_GET['reason'] ?? 'Not specified';
+    $stmt = $pdo->prepare("UPDATE orders SET status = 'CANCELLED', rejection_reason = ? WHERE id = ? AND store_id = ?");
+    if($stmt->execute([$reason, $order_id, $store_id])) {
+        // Update payment status to REJECTED
+        $pdo->prepare("UPDATE payments SET status = 'REJECTED' WHERE order_id = ?")->execute([$order_id]);
+        $success = "Order declined. Customer will be notified.";
+    }
+}
+
 // 4. Fetch Products
 $stmt = $pdo->prepare("SELECT * FROM products WHERE store_id = ? ORDER BY id DESC");
 $stmt->execute([$store_id]);
@@ -212,8 +224,9 @@ include_once 'includes/header.php';
                         </div>
 
                         <div style="display: flex; gap: 10px;">
-                            <a href="<?php echo $o['screenshot_url']; ?>" target="_blank" class="btn btn-glass" style="flex: 1; font-size: 0.8rem;">View Receipt</a>
-                            <a href="store_dashboard.php?verify_order=<?php echo $o['id']; ?>" class="btn btn-primary" style="flex: 1; font-size: 0.8rem;">Confirm Order</a>
+                            <a href="<?php echo $o['screenshot_url']; ?>" target="_blank" class="btn btn-glass" style="flex: 1; font-size: 0.8rem; justify-content: center; padding: 10px 5px;">Receipt</a>
+                            <a href="#" class="btn" style="flex: 1; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); color: var(--danger); justify-content: center; border: 1px solid rgba(239,68,68,0.2); padding: 10px 5px;" onclick="declineOrder(event, <?php echo $o['id']; ?>)">Decline</a>
+                            <a href="store_dashboard.php?verify_order=<?php echo $o['id']; ?>" class="btn btn-primary" style="flex: 1; font-size: 0.8rem; justify-content: center; padding: 10px 5px;">Confirm</a>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -281,5 +294,43 @@ include_once 'includes/header.php';
     </div>
 </div>
 
+<!-- Rejection Modal -->
+<div id="rejectionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="glass" style="padding: 2rem; width: 90%; max-width: 400px; text-align: center; position: relative;">
+        <h3 style="margin-bottom: 1rem; color: var(--danger);">Decline Order</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Please provide a reason to the customer.</p>
+        <textarea id="rejectionReasonInput" class="form-input" rows="3" placeholder="e.g. Item out of stock" style="margin-bottom: 1.5rem; resize: none;"></textarea>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-glass" style="flex: 1; justify-content: center;" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" style="flex: 1; justify-content: center; background: var(--danger); border: none;" onclick="submitRejection()">Decline Now</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentRejectOrderId = null;
+
+function declineOrder(event, orderId) {
+    event.preventDefault();
+    currentRejectOrderId = orderId;
+    document.getElementById('rejectionModal').style.display = 'flex';
+    document.getElementById('rejectionReasonInput').value = '';
+    document.getElementById('rejectionReasonInput').focus();
+}
+
+function closeModal() {
+    document.getElementById('rejectionModal').style.display = 'none';
+    currentRejectOrderId = null;
+}
+
+function submitRejection() {
+    let reason = document.getElementById('rejectionReasonInput').value;
+    if (reason !== null && reason.trim() !== '') {
+        window.location.href = 'store_dashboard.php?decline_order=' + currentRejectOrderId + '&reason=' + encodeURIComponent(reason.trim());
+    } else {
+        alert('Rejection reason cannot be empty.');
+    }
+}
+</script>
 </body>
 </html>

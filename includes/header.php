@@ -42,10 +42,11 @@
                         <a href="admin_dashboard.php">Admin Panel</a>
                     <?php endif; ?>
 
-                    <div class="user-profile">
-                        <span style="color: var(--text-main); font-weight: 600; margin-right: 15px;">
+                    <div class="user-profile" style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--text-main); font-weight: 600; margin-right: 5px;">
                             Hi, <?php echo explode(' ', $_SESSION['name'])[0] ?? 'User'; ?>
                         </span>
+                        <a href="profile.php" class="btn btn-glass" style="padding: 8px 16px;"><i class="fas fa-user-edit" style="margin-right: 5px;"></i> Profile</a>
                         <a href="logout.php" class="btn btn-glass" style="padding: 8px 16px;">Logout</a>
                     </div>
                 <?php else: ?>
