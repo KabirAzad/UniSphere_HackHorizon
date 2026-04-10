@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_otp'])) {
         $pdo->prepare("UPDATE users SET points = points + ? WHERE id = ?")->execute([$points, $rider_id]);
         $_SESSION['points'] += $points;
         
-        $success = "Delivery verified! You earned 50 Reward Points.";
+        $success = "Delivery verified! You earned 50 UniCoins.";
     } else {
         $error = "Invalid OTP. Please check with the UniMember.";
     }
@@ -109,7 +109,7 @@ include_once 'includes/header.php';
                 </button>
             </form>
             <div style="text-align: right;">
-                <p style="font-size: 0.8rem; color: var(--text-muted);">My Points</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">My UniCoins</p>
                 <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary);"><?php echo number_get_format($_SESSION['points'] ?? 0, 0); ?></span>
             </div>
         </div>
@@ -175,7 +175,7 @@ include_once 'includes/header.php';
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 1rem;">
                         <div>
                             <p style="font-weight: 600;">#<?php echo $o['id']; ?> - <?php echo $o['store_name']; ?></p>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">Reward: <span style="color: var(--primary);">+50 Pts</span></p>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Reward: <span style="color: var(--primary);">+50 UniCoins</span></p>
                         </div>
                         <a href="rider_dashboard.php?accept_order=<?php echo $o['id']; ?>" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85rem;">Accept Task</a>
                     </div>
@@ -197,7 +197,7 @@ include_once 'includes/header.php';
                             <th style="padding: 10px; color: var(--text-muted);">Order</th>
                             <th style="padding: 10px; color: var(--text-muted);">Store</th>
                             <th style="padding: 10px; color: var(--text-muted);">Member</th>
-                            <th style="padding: 10px; color: var(--text-muted);">Points Earned</th>
+                            <th style="padding: 10px; color: var(--text-muted);">UniCoins Earned</th>
                             <th style="padding: 10px; color: var(--text-muted);">Date</th>
                         </tr>
                     </thead>
@@ -207,7 +207,7 @@ include_once 'includes/header.php';
                                 <td style="padding: 10px;">#<?php echo $co['id']; ?></td>
                                 <td style="padding: 10px;"><?php echo $co['store_name']; ?></td>
                                 <td style="padding: 10px;"><?php echo $co['member_name']; ?></td>
-                                <td style="padding: 10px; color: var(--primary);">+50 Pts</td>
+                                <td style="padding: 10px; color: var(--primary);">+50 UniCoins</td>
                                 <td style="padding: 10px; color: var(--text-muted);"><?php echo date('M d, H:i', strtotime($co['updated_at'])); ?></td>
                             </tr>
                         <?php endforeach; ?>
